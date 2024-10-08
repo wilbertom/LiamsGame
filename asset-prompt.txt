@@ -1,0 +1,19 @@
+I'm creating a kid's video game that needs some game assets.
+The assets should not have backgrounds, floors or shadows.
+
+We're aiming for cute characters for a toddler's cartoon including:
+* Animal characters
+* Food characters
+* Plant characters
+* Fantasy creature characters
+
+Can you generate the images for:
+
+* A baby calf
+* A baby dog
+* A baby horse
+* A baby cat
+
+Each character should be on its own PNG image, with transparent background.
+There should only be one instance of the character on the image.
+There should be plenty of padding between the character and all four corners.
