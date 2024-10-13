@@ -3,6 +3,8 @@ package main
 import "core:fmt"
 import "vendor:raylib"
 import "core:c"
+import "core:strings"
+import "core:path/filepath"
 
 main :: proc() {
     title : cstring = "Liam's Game"
@@ -13,6 +15,13 @@ main :: proc() {
 
     screenWidth : c.int : 1280
     screenHeight : c.int : 1024
+
+    // Init
+    {    
+        raylib.InitWindow(screenWidth, screenHeight, title)
+        raylib.SetTargetFPS(60)
+        // raylib.ToggleFullscreen()
+    }
 
     actions[raylib.KeyboardKey.APOSTROPHE] = createAction("unimplemented")
     actions[raylib.KeyboardKey.COMMA] = createAction("unimplemented")
@@ -31,10 +40,10 @@ main :: proc() {
     actions[raylib.KeyboardKey.NINE] = createAction("unimplemented")
     actions[raylib.KeyboardKey.SEMICOLON] = createAction("unimplemented")
     actions[raylib.KeyboardKey.EQUAL] = createAction("unimplemented")
-    actions[raylib.KeyboardKey.A] = createAction("unimplemented")
-    actions[raylib.KeyboardKey.B] = createAction("unimplemented")
-    actions[raylib.KeyboardKey.C] = createAction("unimplemented")
-    actions[raylib.KeyboardKey.D] = createAction("unimplemented")
+    actions[raylib.KeyboardKey.A] = createAction("cat")
+    actions[raylib.KeyboardKey.B] = createAction("calf")
+    actions[raylib.KeyboardKey.C] = createAction("cow")
+    actions[raylib.KeyboardKey.D] = createAction("dog")
     actions[raylib.KeyboardKey.E] = createAction("unimplemented")
     actions[raylib.KeyboardKey.F] = createAction("unimplemented")
     actions[raylib.KeyboardKey.G] = createAction("unimplemented")
@@ -49,7 +58,7 @@ main :: proc() {
     actions[raylib.KeyboardKey.P] = createAction("unimplemented")
     actions[raylib.KeyboardKey.Q] = createAction("unimplemented")
     actions[raylib.KeyboardKey.R] = createAction("unimplemented")
-    actions[raylib.KeyboardKey.S] = createAction("unimplemented")
+    actions[raylib.KeyboardKey.S] = createAction("star")
     actions[raylib.KeyboardKey.T] = createAction("unimplemented")
     actions[raylib.KeyboardKey.U] = createAction("unimplemented")
     actions[raylib.KeyboardKey.V] = createAction("unimplemented")
@@ -120,13 +129,6 @@ main :: proc() {
     actions[raylib.KeyboardKey.KP_ENTER] = createAction("unimplemented")
     actions[raylib.KeyboardKey.KP_EQUAL] = createAction("unimplemented")
 
-    // Init
-    {    
-        raylib.InitWindow(screenWidth, screenHeight, title)
-        raylib.SetTargetFPS(60)
-        // raylib.ToggleFullscreen()
-    }
-
     for ; !raylib.WindowShouldClose() ; {
         // Update
         {
@@ -147,11 +149,21 @@ main :: proc() {
                 raylib.ClearBackground(raylib.RAYWHITE)
 
                 if currentAction != nil {
-                    raylib.DrawRectangle(
-                        screenWidth / 2,
-                        screenHeight / 2,
-                        100, 100, raylib.RED
-                    )
+
+                    if currentAction.implemented {
+                        raylib.DrawTexture(
+                            currentAction.texture,
+                            0,
+                            0,
+                            raylib.WHITE,
+                        )
+                    } else {
+                        raylib.DrawRectangle(
+                            screenWidth / 2,
+                            screenHeight / 2,
+                            100, 100, raylib.RED
+                        )
+                    }
                 }
             }
             raylib.EndDrawing()
@@ -161,11 +173,22 @@ main :: proc() {
 
 
 createAction :: proc(name: string) -> Action {
+    texture : raylib.Texture2D
+
+    if name != "unimplemented" {
+        fp := strings.join({filepath.join({"assets/images/", name}), "png"}, ".")
+        fpcstring := strings.clone_to_cstring(fp)
+        texture := raylib.LoadTexture(fpcstring)
+
+        return Action{implemented = true, texture = texture}
+    }
+
     return Action{}
 }
 
 Action :: struct {
-    image : raylib.Image,
+    implemented: bool,
+    texture : raylib.Texture2D,
     sound : raylib.Sound,
 }
 
