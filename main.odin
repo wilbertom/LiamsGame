@@ -33,7 +33,7 @@ main :: proc() {
         actions[raylib.KeyboardKey.ZERO] = createAction("calf")
         actions[raylib.KeyboardKey.ONE] = createAction("car")
         actions[raylib.KeyboardKey.TWO] = createAction("cat")
-        actions[raylib.KeyboardKey.THREE] = createAction("t-cheese")
+        actions[raylib.KeyboardKey.THREE] = createAction("t-rex")
         actions[raylib.KeyboardKey.FOUR] = createAction("chicken")
         actions[raylib.KeyboardKey.FIVE] = createAction("circle")
         actions[raylib.KeyboardKey.SIX] = createAction("convertible-car")
@@ -181,7 +181,9 @@ createAction :: proc(name: string) -> Action {
     if name != "unimplemented" {
         fp := strings.join({filepath.join({"assets/images/", name}), "png"}, ".")
         fpcstring := strings.clone_to_cstring(fp)
-        texture := raylib.LoadTexture(fpcstring)
+        image := raylib.LoadImage(fpcstring)
+        raylib.ImageResize(&image, 512, 512)
+        texture := raylib.LoadTextureFromImage(image)
 
         return Action{implemented = true, texture = texture}
     }
