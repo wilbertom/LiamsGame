@@ -13,14 +13,30 @@ main :: proc() {
     actions : [512]Action
     currentAction : ^Action = nil
 
-    screenWidth : c.int : 1280
-    screenHeight : c.int : 1024
+    fullscreen : bool = true
+    screenWidth : c.int
+    screenHeight : c.int
+
+    if fullscreen {
+        // borderless windowed mode sets the correct width / height but there's
+        // a split second where the window is the size the window is init with
+        // setting to 0 also does the trick
+        screenWidth = raylib.GetScreenWidth()
+        screenHeight = raylib.GetScreenHeight()
+    } else {
+        screenWidth = 1280
+        screenHeight = 1024
+    }
+
 
     // Init
     {    
         raylib.InitWindow(screenWidth, screenHeight, title)
         raylib.SetTargetFPS(60)
-        // raylib.ToggleFullscreen()
+
+        if fullscreen {
+            raylib.ToggleBorderlessWindowed()
+        }
     }
 
     // Load
