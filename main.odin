@@ -6,6 +6,7 @@ import "core:c"
 import "core:strings"
 import "core:path/filepath"
 import "core:strconv"
+import "core:math/rand"
 
 
 main :: proc() {
@@ -17,6 +18,7 @@ main :: proc() {
     sounds : [25]raylib.Sound
     playChime : bool
     currentChime : int
+    margin : int : 20
 
     fullscreen : bool = true
     screenWidth : c.int
@@ -26,6 +28,7 @@ main :: proc() {
         // borderless windowed mode sets the correct width / height but there's
         // a split second where the window is the size the window is init with
         // setting to 0 also does the trick
+        // getting these before InitWindow doesn't work on Linux
         screenWidth = raylib.GetScreenWidth()
         screenHeight = raylib.GetScreenHeight()
     } else {
@@ -37,6 +40,12 @@ main :: proc() {
     // Init
     {
         raylib.InitWindow(screenWidth, screenHeight, title)
+
+        { // set these on linux, where they return 0 before InitWindow
+            screenWidth = raylib.GetScreenWidth()
+            screenHeight = raylib.GetScreenHeight()
+        }
+
         raylib.SetTargetFPS(60)
 
         if fullscreen {
@@ -171,12 +180,12 @@ main :: proc() {
         {
             button := raylib.GetKeyPressed()
 
-            fmt.println("%d pressed", button)
-
             if button == raylib.KeyboardKey.KEY_NULL {
                 playChime = false
             } else {
                 currentAction = &actions[button]
+                currentAction.position.x = cast(c.int)(margin + rand.int_max(cast(int)(screenWidth) - margin))
+                currentAction.position.y = cast(c.int)(margin + rand.int_max(cast(int)(screenHeight) - margin))
 
                 playChime = true
                 currentChime += 1
@@ -201,8 +210,8 @@ main :: proc() {
                 if currentAction != nil && currentAction.implemented {
                     raylib.DrawTexture(
                         currentAction.texture,
-                        0,
-                        0,
+                        currentAction.position.x,
+                        currentAction.position.y,
                         raylib.WHITE,
                     )
                 }
@@ -221,7 +230,7 @@ createAction :: proc(name: string) -> Action {
             fp := pathWithExtension({"assets/images/", name}, "png")
             fpcstring := strings.clone_to_cstring(fp)
             image := raylib.LoadImage(fpcstring)
-            raylib.ImageResize(&image, 512, 512)
+            raylib.ImageResize(&image, 256, 256)
             texture = raylib.LoadTextureFromImage(image)
         }
 
@@ -238,6 +247,7 @@ pathWithExtension :: proc(paths: []string, extension: string) -> string {
 Action :: struct {
     implemented: bool,
     texture : raylib.Texture2D,
+    position : Vector2,
 }
 
 Vector2 :: struct {
