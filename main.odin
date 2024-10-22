@@ -5,6 +5,8 @@ import "vendor:raylib"
 import "core:c"
 import "core:strings"
 import "core:path/filepath"
+import "core:strconv"
+
 
 main :: proc() {
     title : cstring = "Liam's Game"
@@ -12,6 +14,9 @@ main :: proc() {
 
     actions : [512]Action
     currentAction : ^Action = nil
+    sounds : [25]raylib.Sound
+    playChime : bool
+    currentChime : int
 
     fullscreen : bool = true
     screenWidth : c.int
@@ -30,13 +35,15 @@ main :: proc() {
 
 
     // Init
-    {    
+    {
         raylib.InitWindow(screenWidth, screenHeight, title)
         raylib.SetTargetFPS(60)
 
         if fullscreen {
             raylib.ToggleBorderlessWindowed()
         }
+
+        raylib.InitAudioDevice()
     }
 
     // Load
@@ -92,7 +99,7 @@ main :: proc() {
         actions[raylib.KeyboardKey.ESCAPE] = createAction("strawberry")
         actions[raylib.KeyboardKey.ENTER] = createAction("submarine")
         actions[raylib.KeyboardKey.TAB] = createAction("sunflower")
-        actions[raylib.KeyboardKey.BACKSPACE] = createAction("aad")
+        actions[raylib.KeyboardKey.BACKSPACE] = createAction("unimplemented")
         actions[raylib.KeyboardKey.INSERT] = createAction("tiger")
         actions[raylib.KeyboardKey.DELETE] = createAction("tomato")
         actions[raylib.KeyboardKey.RIGHT] = createAction("tractor")
@@ -146,6 +153,17 @@ main :: proc() {
         actions[raylib.KeyboardKey.KP_ADD] = createAction("unimplemented")
         actions[raylib.KeyboardKey.KP_ENTER] = createAction("unimplemented")
         actions[raylib.KeyboardKey.KP_EQUAL] = createAction("unimplemented")
+
+        for i in 0..=(len(sounds) - 1) {
+            sibuf : [4]byte
+            si := strconv.itoa(sibuf[:], i)
+            sounds[i] = raylib.LoadSound(
+                strings.clone_to_cstring(
+                    pathWithExtension({"assets/sounds", strings.join({"Wind Chimes ", si}, "")}, "wav")
+                )
+            )
+
+        }
     }
 
     for ; !raylib.WindowShouldClose() ; {
@@ -153,36 +171,40 @@ main :: proc() {
         {
             button := raylib.GetKeyPressed()
 
+            fmt.println("%d pressed", button)
+
             if button == raylib.KeyboardKey.KEY_NULL {
-                // currentAction = nil
+                playChime = false
             } else {
                 currentAction = &actions[button]
+
+                playChime = true
+                currentChime += 1
+                if currentChime > (len(sounds) - 1) {
+                    currentChime = 0
+                }
             }
 
         }
 
-        // Draw
-        {
+        { // Sounds
+            if playChime {
+                raylib.PlaySound(sounds[currentChime])
+            }
+        }
+
+        { // Draw
             raylib.BeginDrawing()
             {
                 raylib.ClearBackground(raylib.RAYWHITE)
 
-                if currentAction != nil {
-
-                    if currentAction.implemented {
-                        raylib.DrawTexture(
-                            currentAction.texture,
-                            0,
-                            0,
-                            raylib.WHITE,
-                        )
-                    } else {
-                        raylib.DrawRectangle(
-                            screenWidth / 2,
-                            screenHeight / 2,
-                            100, 100, raylib.RED
-                        )
-                    }
+                if currentAction != nil && currentAction.implemented {
+                    raylib.DrawTexture(
+                        currentAction.texture,
+                        0,
+                        0,
+                        raylib.WHITE,
+                    )
                 }
             }
             raylib.EndDrawing()
@@ -195,11 +217,13 @@ createAction :: proc(name: string) -> Action {
     texture : raylib.Texture2D
 
     if name != "unimplemented" {
-        fp := strings.join({filepath.join({"assets/images/", name}), "png"}, ".")
-        fpcstring := strings.clone_to_cstring(fp)
-        image := raylib.LoadImage(fpcstring)
-        raylib.ImageResize(&image, 512, 512)
-        texture := raylib.LoadTextureFromImage(image)
+        { // Load texture
+            fp := pathWithExtension({"assets/images/", name}, "png")
+            fpcstring := strings.clone_to_cstring(fp)
+            image := raylib.LoadImage(fpcstring)
+            raylib.ImageResize(&image, 512, 512)
+            texture = raylib.LoadTextureFromImage(image)
+        }
 
         return Action{implemented = true, texture = texture}
     }
@@ -207,10 +231,13 @@ createAction :: proc(name: string) -> Action {
     return Action{}
 }
 
+pathWithExtension :: proc(paths: []string, extension: string) -> string {
+    return strings.join({filepath.join(paths), extension}, ".")
+}
+
 Action :: struct {
     implemented: bool,
     texture : raylib.Texture2D,
-    sound : raylib.Sound,
 }
 
 Vector2 :: struct {
