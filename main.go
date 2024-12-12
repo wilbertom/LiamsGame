@@ -23,7 +23,7 @@ func main() {
 	currentChime := 0
 	var margin int32 = 256
 
-	fullscreen := false
+	fullscreen := true
 	var screenWidth int32 = 0
 	var screenHeight int32 = 0
 
