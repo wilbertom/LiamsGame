@@ -254,4 +254,3 @@ Vector2 :: struct {
     x : c.int,
     y : c.int,
 }
-
