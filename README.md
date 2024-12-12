@@ -20,3 +20,10 @@ $ go run main.go
 ```
 
 Press `ESC` to exit.
+
+
+## Assets
+
+The images where generated with ChatGPT.
+
+The chimes sounds where purchased.
